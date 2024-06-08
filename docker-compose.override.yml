@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/auth
+      - REACT_APP_KEYCLOAK_REALM=student-realm
+      - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
+    ports:
+      - "80:80"
+    networks:
+      - keycloak-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "5000:5000"
+    networks:
+      - keycloak-network
