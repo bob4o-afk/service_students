@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       - NODE_ENV=production
-      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/auth
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/
       - REACT_APP_KEYCLOAK_REALM=student-realm
       - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
     ports:

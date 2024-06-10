@@ -1,0 +1,49 @@
+version: '3.8'
+
+networks:
+  keycloak-network:
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    command:
+      - start-dev
+    networks:
+      - keycloak-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3300:3300"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/
+      - REACT_APP_KEYCLOAK_REALM=student-realm
+      - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak-network
+
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/
+      - REACT_APP_KEYCLOAK_REALM=student-realm
+      - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak-network
