@@ -20,16 +20,14 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3300:3300"
+      dockerfile: Dockerfile.prod
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=production
       - REACT_APP_KEYCLOAK_URL=http://localhost:8080/
       - REACT_APP_KEYCLOAK_REALM=student-realm
       - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
-    depends_on:
-      - keycloak
+    ports:
+      - "80:80"
     networks:
       - keycloak-network
 
