@@ -27,7 +27,7 @@ services:
       - REACT_APP_KEYCLOAK_REALM=student-realm
       - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
     ports:
-      - "80:80"
+      - "3000:3000"
     networks:
       - keycloak-network
 
