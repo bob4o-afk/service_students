@@ -1,0 +1,3 @@
+FROM mariadb:latest
+ENV MYSQL_ROOT_PASSWORD=1000
+ENV MYSQL_DATABASE=studentdb

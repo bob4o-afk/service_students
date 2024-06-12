@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Backend.Data;
-
+using backend.Data; 
+using MySQL.Data.EntityFrameworkCore;
 
 public class Startup
 {
@@ -19,23 +18,17 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseMySQL(Configuration.GetConnectionString("DefaultConnection")));
+
+
         services.AddControllers();
-
-        // Add DbContext
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-        // Add Keycloak authentication
-        services.AddAuthentication(options =>
+        services.AddCors(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.Authority = Configuration["Keycloak:Authority"];
-            options.Audience = Configuration["Keycloak:ClientId"];
-            options.RequireHttpsMetadata = false;
+            options.AddPolicy("AllowAllOrigins",
+                builder => builder.AllowAnyOrigin()
+                                  .AllowAnyMethod()
+                                  .AllowAnyHeader());
         });
     }
 
@@ -45,18 +38,11 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
         }
-        else
-        {
-            app.UseExceptionHandler("/Home/Error");
-            app.UseHsts();
-        }
 
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
+        app.UseCors("AllowAllOrigins");
 
         app.UseRouting();
 
-        app.UseAuthentication();
         app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>
