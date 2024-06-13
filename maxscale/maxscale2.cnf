@@ -1,0 +1,15 @@
+[maxscale]
+threads=auto
+
+[dblistener]
+type=listener
+service=db2
+protocol=MySQLClient
+port=3306
+
+[db2]
+type=server
+address=db2
+port=3306
+protocol=MySQLBackend
+monitor_interval=2000

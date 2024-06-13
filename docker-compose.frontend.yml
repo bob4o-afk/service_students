@@ -1,0 +1,72 @@
+version: '3.8'
+
+networks:
+  keycloak-network:
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    command:
+      - start-dev
+    networks:
+      - keycloak-network
+
+  # db:
+  #   build: ./db
+  #   restart: always
+  #   container_name: db-maria
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: password
+  #     MYSQL_DATABASE: students_db
+  #   volumes:
+  #     - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   networks:
+  #     - keycloak-network
+
+  # maxscale:
+  #   image: mariadb/maxscale:latest
+  #   networks:
+  #     - keycloak-network
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "4000:4000"
+  #   environment:
+  #     MAXSCALE_USER: admin
+  #     MAXSCALE_PASSWORD: admin
+
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile.prod
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - keycloak-network
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080/
+      - REACT_APP_KEYCLOAK_REALM=student-realm
+      - REACT_APP_KEYCLOAK_CLIENT_ID=student-client
+      - REACT_APP_BACKEND_URL=http://localhost:3000/api
+    ports:
+      - "80:80"
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak-network

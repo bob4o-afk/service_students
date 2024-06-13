@@ -1,19 +1,13 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-WORKDIR /app
-EXPOSE 80
+FROM node:14
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["backend/backend.csproj", "."]
-RUN dotnet restore "./backend.csproj"
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "backend.csproj" -c Release -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "backend.csproj" -c Release -o /app/publish
+EXPOSE 3000
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "backend.dll"]
+CMD ["node", "index.js"]

@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: students_db
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  maxscale:
+    image: mariadb/maxscale:latest
+    restart: always
+    environment:
+      MAXSCALE_ROOT_PASSWORD: maxscale_password
+    ports:
+      - "3306:3306"
+      - "8989:8989"
+    volumes:
+      - ./maxscale/maxscale.cnf:/etc/maxscale.cnf
+
+  backend2:
+    build: ./backend
+    restart: always
+    ports:
+      - "3001:3000" # Use different port for the second instance
+    depends_on:
+      - db2
+    volumes:
+      - ./backend:/app
+
+  db2:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: students_db_2  # Use a different database name
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  maxscale2:
+    image: mariadb/maxscale:latest
+    restart: always
+    environment:
+      MAXSCALE_ROOT_PASSWORD: maxscale_password
+    ports:
+      - "3307:3306" # Use different port for the second MaxScale instance
+      - "8990:8989" # Use different port for the management GUI
+    volumes:
+      - ./maxscale/maxscale2.cnf:/etc/maxscale.cnf

@@ -1,48 +1,59 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
+import axios from 'axios';
 import Login from './Login';
 
 const App = () => {
   const { keycloak } = useKeycloak();
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [students, setStudents] = useState([]);
 
+  useEffect(() => {
+    if (keycloak.authenticated) {
+      fetchStudents();
+    }
+  }, [keycloak.authenticated]);
 
-//   const [students, setStudents] = useState([]);
-//     const [newStudent, setNewStudent] = useState('');
-    
-//     useEffect(() => {
-//         fetchStudents();
-//     }, []);
-
-//     const fetchStudents = async () => {
-//         try {
-//             const response = await fetch('http://localhost:5000/api/students');
-//             const data = await response.json();
-//             setStudents(data);
-//         } catch (error) {
-//             console.error('Error fetching students:', error);
-//         }
-//     };
+  const fetchStudents = async () => {
+    try {
+      const token = keycloak.token;
+      const response = await axios.get('http://localhost:3000/api/students', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      setStudents(response.data);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (keycloak.authenticated) {
-      const token = keycloak.token;
-      const response = await fetch('http://localhost:5000/api/students', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, age }),
-      });
-      if (response.ok) {
-        alert('Student added successfully');
-        setName('');
-        setAge('');
-      } else {
-        alert('Failed to add student');
+      try {
+        const token = keycloak.token;
+        const response = await axios.post(
+          'http://localhost:3000/api/students',
+          { name, age },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.status === 201) {
+          alert('Student added successfully');
+          setName('');
+          setAge('');
+          fetchStudents(); // Fetch the updated list of students
+        } else {
+          alert('Failed to add student');
+        }
+      } catch (error) {
+        console.error('Error adding student:', error);
       }
     }
   };
@@ -76,13 +87,13 @@ const App = () => {
         </div>
         <button type="submit">Add Student</button>
       </form>
-      {/* <div style={{ maxHeight: '200px', overflowY: 'scroll' }}>
+      <div style={{ maxHeight: '200px', overflowY: 'scroll' }}>
         <ul>
-            {students.map((student, index) => (
-                <li key={index}>{student.name}</li>
-            ))}
+          {students.map((student, index) => (
+            <li key={index}>{`${student.name}, ${student.age}`}</li>
+          ))}
         </ul>
-    </div> */}
+      </div>
     </div>
   );
 };
